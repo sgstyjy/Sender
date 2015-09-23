@@ -50,7 +50,7 @@ class SenderThread extends Thread
 		int send_length = 0;
 		try {
 				//read the similarity table
-				File file_in2 = new File(Constant.COMPARE_U12_U14WEB);
+				File file_in2 = new File(Constant.COMPARE_U12_U14WEB_4K);
 				//InputStream hashtable2 = new FileInputStream(file_in2);
 				Workbook book = Workbook.getWorkbook(file_in2);
 				Sheet sheet = book.getSheet(0);
