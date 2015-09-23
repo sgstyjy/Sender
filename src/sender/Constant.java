@@ -8,7 +8,7 @@ public class Constant {
 	//public static String FILE_IN = "test.zip";
 	//public static String FILE_OUT = "testresult.zip";
 	public static String BLOCKNUM_OUT = "blocknum.txt";
-	public static String COMPARE_U12_U14WEB_4K = "com_u12_u14web_4k.xls";
+	public static String SIMILARTABLE = "com_u12_u14web_4k.xls";
 	public static String COMPARE_U14DEV_U14WEB_4K = "com_u14dev_u14web_4k.xls";
 	
 	public static int TOTALBLOCKS = 524287;
