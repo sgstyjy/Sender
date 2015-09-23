@@ -11,9 +11,9 @@ public class Sender {
 
 	public static void main(String[] args) throws BiffException, IOException {
           //args[0]  the send image file name; args[1]  the destination IP address
-		  Constant.FILE_IN = args[0];
+		 Constant.FILE_IN = args[0];
 		  InetAddress addr = InetAddress.getByName(args[1]);
-		  //InetAddress addr = InetAddress.getByName("localhost");
+		// InetAddress addr = InetAddress.getByName("localhost");
 	      System.out.println("The outputs are from the Client: ");
 	      System.out.println("The send image file is:  " + Constant.FILE_IN);
          
