@@ -12,20 +12,22 @@ public class Sender {
 
 	public static void main(String[] args) throws BiffException, IOException {
         //@para args[0]  the send image file name;
-		//@para args[1]  the start block number;
-		//@para args[2]  the end block number;
-		//@para args[3]  the destination IP address
-		//@para args[4]  the client ID;
+		//@para args[1]  the total blocks;
+		//@para args[2]  the start block number;
+		//@para args[3]  the end block number;
+		//@para args[4]  the destination IP address
+		//@para args[5]  the client ID;
 		 Constant.FILE_IN = args[0];
-		 Constant.START_BLOCK=  Integer.parseInt(args[1]);
-		 Constant.END_BLOCK =  Integer.parseInt(args[2]);
-		 int total_block = Constant.END_BLOCK - Constant.START_BLOCK;
+		 int total_block = Integer.parseInt(args[1]);
+		 Constant.START_BLOCK=  Integer.parseInt(args[2]);
+		 Constant.END_BLOCK =  Integer.parseInt(args[3]);
+		 int send_block = Constant.END_BLOCK - Constant.START_BLOCK;
 		 
-		byte[] ip = getIpByte(args[3]);
+		byte[] ip = getIpByte(args[4]);
 		 //System.out.println(ip);
 		InetAddress addr = InetAddress.getByAddress(ip);
 		
-		int cid = Integer.parseInt(args[4]);
+		int cid = Integer.parseInt(args[5]);
 		 // InetAddress addr = InetAddress.getByName("localhost");
 		 //InetAddress addr = InetAddress.getByAddress("141.5.103.57");
 	      System.out.println("The outputs are from the Client: ");
@@ -40,18 +42,20 @@ public class Sender {
 		   socket.setSoTimeout(6000);
 		   RandomAccessFile cin = new RandomAccessFile(Constant.FILE_IN,"r");
 		   cin.seek(Constant.START_BLOCK);
+		   
 		   DataOutputStream cout = new DataOutputStream(socket.getOutputStream());
 		   //send the client ID, start block, end block, and file name
 		   cout.writeInt(cid);
-		   cout.writeInt(Constant.START_BLOCK);
 		   cout.writeInt(total_block);
+		   cout.writeInt(Constant.START_BLOCK);
+		   cout.writeInt(send_block);
 		   cout.writeUTF(Constant.FILE_IN);
 		   cout.flush();
 		   //send data blocks
 		   int i = 0 ;
 		   byte[] bb =  new byte[Constant.TRANSFER_BUFFER];
 		   int send_length = 0;
-		   while (i<total_block)
+		   while (i<send_block)
 			{
 				 send_length =  cin.read(bb);
 				 cout.write(bb, 0, send_length);
@@ -70,11 +74,11 @@ public class Sender {
 	
 	//translate the String IP to byte[] IP
    private static byte [] getIpByte(String ipAddress) {
-       String [] ipStr = ipAddress.split("\\.");//以"."拆分字符串
+       String [] ipStr = ipAddress.split("\\.");//浠�"."鎷嗗垎瀛楃涓�
        byte [] ipByte = new byte[ipStr.length];
        for(int i = 0 ; i < ipStr.length; i++) {
-           // 进行byte转换后不是会有溢出吗？为什么溢出后还是可以正确运行？
-           ipByte[i] = (byte)(Integer.parseInt(ipStr[i])&0xFF);//调整整数大小,byte的数值范围为-128~127
+           // 杩涜byte杞崲鍚庝笉鏄細鏈夋孩鍑哄悧锛熶负浠�涔堟孩鍑哄悗杩樻槸鍙互姝ｇ‘杩愯锛�
+           ipByte[i] = (byte)(Integer.parseInt(ipStr[i])&0xFF);//璋冩暣鏁存暟澶у皬,byte鐨勬暟鍊艰寖鍥翠负-128~127
        } 
        return ipByte;
    }
