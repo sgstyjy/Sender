@@ -32,12 +32,14 @@ class SenderThread extends Thread
 		long size = cin.length();
 		System.out.println("The length of original file is: "+ size);
 		
+		System.setProperty("java.net.preferIPv4Stack", "true");
 		socket = new Socket(addr, port);
 		socket.setSoTimeout(6000);
 		cout = new DataOutputStream(socket.getOutputStream());
 		
 		//start thread
 		start();
+		
      }
   
 	//thread main method
@@ -75,6 +77,12 @@ class SenderThread extends Thread
 	    		socket.close();
 	    		cin.close();
 	    		cout.close();
+	    		//read the end time
+	     		Date date1 = new Date();
+	     		Constant.ENDTIME = date1.getTime();
+	     		Long duration = Constant.ENDTIME - Constant.STARTTIME;
+	     		System.out.println("The send time  is:"+duration);
+	     		
 	    		System.out.println("The total blocks are:"+i );
 				System.out.println("The send data blocks are:"+sendblocks);
 				System.out.println("The data amount of is [in bytes]:"+sendbytes);
