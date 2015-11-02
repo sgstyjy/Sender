@@ -15,6 +15,7 @@ public class Sender {
 		//@para args[1]  the start block number;
 		//@para args[2]  the end block number;
 		//@para args[3]  the destination IP address
+		//@para args[4]  the client ID;
 		 Constant.FILE_IN = args[0];
 		 Constant.START_BLOCK=  Integer.parseInt(args[1]);
 		 Constant.END_BLOCK =  Integer.parseInt(args[2]);
@@ -22,6 +23,7 @@ public class Sender {
 		byte[] ip = getIpByte(args[3]);
 		 System.out.println(ip);
 		InetAddress addr = InetAddress.getByAddress(ip);
+		int cid = Integer.parseInt(args[4]);
 		 // InetAddress addr = InetAddress.getByName("localhost");
 		 //InetAddress addr = InetAddress.getByAddress("141.5.103.57");
 	      System.out.println("The outputs are from the Client: ");
@@ -37,6 +39,12 @@ public class Sender {
 		   RandomAccessFile cin = new RandomAccessFile(Constant.FILE_IN,"r");
 		   cin.seek(Constant.START_BLOCK);
 		   DataOutputStream cout = new DataOutputStream(socket.getOutputStream());
+		   //send the client ID, start block, end block
+		   cout.writeInt(cid);
+		   cout.writeInt(Constant.START_BLOCK);
+		   cout.writeInt(total_block);
+		   cout.flush();
+		   //send data blocks
 		   int i = 0 ;
 		   byte[] bb =  new byte[Constant.TRANSFER_BUFFER];
 		   int send_length = 0;
