@@ -13,7 +13,7 @@ public class Constant {
 	public static String SIMILARTABLE = "com_u12_u14web_4k.xls";
 	public static String COMPARE_U14DEV_U14WEB_4K = "com_u14dev_u14web_4k.xls";
 	
-	public static int TOTALBLOCKS = 524287;
+	public static int TOTALBLOCKS = 0;
     public static int TRANSFER_BUFFER = 4*1024;
 	public static int COLUMNS = 10000;
     public static int CLIENT_ID = 0;
