@@ -21,15 +21,12 @@ public class Sender {
 		 int total_block = Integer.parseInt(args[1]);
 		 Constant.START_BLOCK=  Integer.parseInt(args[2]);
 		 Constant.END_BLOCK =  Integer.parseInt(args[3]);
-		 int send_block = Constant.END_BLOCK - Constant.START_BLOCK;
+		 byte[] ip = getIpByte(args[4]);
+		 //int cid = Integer.parseInt(args[5]);
 		 
-		byte[] ip = getIpByte(args[4]);
-		 //System.out.println(ip);
+		 int send_block = Constant.END_BLOCK - Constant.START_BLOCK;
 		InetAddress addr = InetAddress.getByAddress(ip);
 		
-		int cid = Integer.parseInt(args[5]);
-		 // InetAddress addr = InetAddress.getByName("localhost");
-		 //InetAddress addr = InetAddress.getByAddress("141.5.103.57");
 	      System.out.println("The outputs are from the Client: ");
 	      System.out.println("The send image file is:  " + Constant.FILE_IN);
 	      System.out.println("The start block number is:  " + Constant.START_BLOCK);
@@ -41,11 +38,12 @@ public class Sender {
 	       Socket socket = new Socket(addr, Constant.PORT);
 		   socket.setSoTimeout(6000);
 		   RandomAccessFile cin = new RandomAccessFile(Constant.FILE_IN,"r");
-		   cin.seek(Constant.START_BLOCK);
+		   cin.seek(Constant.START_BLOCK*Constant.TRANSFER_BUFFER);
+		   System.out.println("The start pointer  is:  " + cin.getFilePointer());
 		   
 		   DataOutputStream cout = new DataOutputStream(socket.getOutputStream());
 		   //send the client ID, start block, end block, and file name
-		   cout.writeInt(cid);
+		  // cout.writeInt(cid);
 		   cout.writeInt(total_block);
 		   cout.writeInt(Constant.START_BLOCK);
 		   cout.writeInt(send_block);
@@ -55,30 +53,30 @@ public class Sender {
 		   int i = 0 ;
 		   byte[] bb =  new byte[Constant.TRANSFER_BUFFER];
 		   int send_length = 0;
-		   while (i<send_block)
+		   send_length =  cin.read(bb);
+		   while (i<send_block && send_length!=-1)
 			{
-				 send_length =  cin.read(bb);
-				 cout.write(bb, 0, send_length);
+			     cout.write(bb, 0, send_length);
 	    		 cout.flush();
-				  i++;
+	    		  i++;
+	    		 send_length =  cin.read(bb);
 			}	
 		   Long endtime  = System.currentTimeMillis();
 		   Long duration = endtime - starttime;
 		   System.out.println("The send time is :  " + duration);
+		   System.out.println("The actual send blocks are :  " + i);
 		   socket.close();
 		   cin.close();
 		   cout.close();
-		   
 		   return;
 	}
 	
 	//translate the String IP to byte[] IP
    private static byte [] getIpByte(String ipAddress) {
-       String [] ipStr = ipAddress.split("\\.");//浠�"."鎷嗗垎瀛楃涓�
+       String [] ipStr = ipAddress.split("\\.");
        byte [] ipByte = new byte[ipStr.length];
        for(int i = 0 ; i < ipStr.length; i++) {
-           // 杩涜byte杞崲鍚庝笉鏄細鏈夋孩鍑哄悧锛熶负浠�涔堟孩鍑哄悗杩樻槸鍙互姝ｇ‘杩愯锛�
-           ipByte[i] = (byte)(Integer.parseInt(ipStr[i])&0xFF);//璋冩暣鏁存暟澶у皬,byte鐨勬暟鍊艰寖鍥翠负-128~127
+           ipByte[i] = (byte)(Integer.parseInt(ipStr[i])&0xFF);
        } 
        return ipByte;
    }
