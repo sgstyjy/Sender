@@ -15,13 +15,16 @@ public class Sender {
 		//@para args[1]  the total blocks;
 		//@para args[2]  the start block number;
 		//@para args[3]  the end block number;
-		//@para args[4]  the destination IP address
+		//@para args[4]  the destination IP address and port, for example: 127.0.0.1:24
 		//@para args[5]  the client ID;
 		 Constant.FILE_IN = args[0];
 		 int total_block = Integer.parseInt(args[1]);
 		 Constant.START_BLOCK=  Integer.parseInt(args[2]);
 		 Constant.END_BLOCK =  Integer.parseInt(args[3]);
-		 byte[] ip = getIpByte(args[4]);
+		 String part0 = args[4].split("\\:")[0];
+		 String part1 = args[4].split("\\:")[1];
+		 byte[] ip = getIpByte(part0);
+		 int port = Integer.parseInt(part1);
 		 //int cid = Integer.parseInt(args[5]);
 		 
 		 int send_block = Constant.END_BLOCK - Constant.START_BLOCK;
@@ -35,7 +38,7 @@ public class Sender {
 	           //read the start time
 	      Long starttime = System.currentTimeMillis();
 	      	      
-	       Socket socket = new Socket(addr, Constant.PORT);
+	       Socket socket = new Socket(addr, port);
 		   socket.setSoTimeout(6000);
 		   RandomAccessFile cin = new RandomAccessFile(Constant.FILE_IN,"r");
 		   cin.seek(Constant.START_BLOCK*Constant.TRANSFER_BUFFER);
