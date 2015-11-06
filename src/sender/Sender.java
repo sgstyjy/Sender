@@ -54,6 +54,7 @@ public class Sender {
 	       InetAddress addr = InetAddress.getByAddress(ip);
 	       Socket socket = new Socket(addr, Constant.PORT);
 		   //socket.setSoTimeout(6000); 
+	       //System.out.println("The timeout  is:  " + socket.getSoTimeout());
 		   RandomAccessFile cin = new RandomAccessFile(Constant.FILE_IN,"r");
 		   cin.seek(Constant.START_BLOCK*Constant.TRANSFER_BUFFER);       //set the start read pointer
 		   //System.out.println("The start pointer  is:  " + cin.getFilePointer());
@@ -64,7 +65,7 @@ public class Sender {
 		   cout.writeLong(last_bytes);
 		   cout.writeInt(Constant.START_BLOCK);
 		   cout.writeInt(send_block);
-		   //cout.writeUTF(Constant.FILE_IN);
+		   cout.writeUTF(Constant.FILE_IN);
 		   cout.flush();
 		   
 		   //send data blocks
