@@ -44,8 +44,8 @@ public class Sender {
 	      System.out.println("The send image file is:  " + Constant.FILE_IN);
 	      System.out.println("The start block number is:  " + Constant.START_BLOCK);
 	      System.out.println("The end block number is:  " + Constant.END_BLOCK);
-	     // System.out.println("The send times are:  " + send_times);
-	      //System.out.println("The last bytes are:  " + last_bytes);
+	      System.out.println("The send times are:  " + send_times);
+	      System.out.println("The last bytes are:  " + last_bytes);
          
 	        //read the start time
 	       Long starttime = System.currentTimeMillis();
