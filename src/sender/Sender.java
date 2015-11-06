@@ -53,7 +53,7 @@ public class Sender {
 	       //construtct the socket
 	       InetAddress addr = InetAddress.getByAddress(ip);
 	       Socket socket = new Socket(addr, Constant.PORT);
-		   socket.setSoTimeout(6000); 
+		   //socket.setSoTimeout(6000); 
 		   RandomAccessFile cin = new RandomAccessFile(Constant.FILE_IN,"r");
 		   cin.seek(Constant.START_BLOCK*Constant.TRANSFER_BUFFER);       //set the start read pointer
 		   //System.out.println("The start pointer  is:  " + cin.getFilePointer());
