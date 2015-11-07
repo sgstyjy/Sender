@@ -71,6 +71,7 @@ public class Sender {
 		   //send data blocks
 		   int i = 0 ;
 		   byte[] sb = new byte [15* Constant.TRANSFER_BUFFER];
+		   
 		   int send_length = 0;
 	        send_length =  cin.read(sb);
 	        //System.out.println("The send length is :  " + send_length);
@@ -84,11 +85,17 @@ public class Sender {
 		   //write the last part of data in the buffer
 		   cout.write(sb, 0, (int) last_bytes);
 		   cout.flush();
+		   System.out.println("The actual send times is: " + i);
+		   //send end message
+		   String end = "end";
+		   sb=end.getBytes();
+		   cout.write(sb, 0, sb.length);
+		   cout.flush();
+		   //calculate the send duration
 		   Long endtime  = System.currentTimeMillis();
 		   Long duration = endtime - starttime;
 		   System.out.println("The send time is :  " + duration);
-		   //System.out.println("The actual send blocks are :  " + i);
-		  // System.out.println("The last bytes are :  " + last_bytes);
+
 		   socket.close();
 		   cin.close();
 		   cout.close();
