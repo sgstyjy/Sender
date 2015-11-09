@@ -1,8 +1,8 @@
 package sender;
 
 public class Constant {
-	public static String FILE_IN = "ubuntu12server.qcow2";
-	public static String FILE_OUT = "ubuntu14received.qcow2";
+	public static String FILE_IN = "default_filein.qcow2";
+	public static String FILE_OUT = "default_fileout.qcow2";
 	public static int START_BLOCK = 0;
 	public static int END_BLOCK =0;
 	//public static String FILE_IN = "test.txt";
@@ -19,8 +19,8 @@ public class Constant {
     public static int CLIENT_ID = 0;
     public static long STARTTIME  = 0;
     public static long ENDTIME  = 0;
-    public static int PORT=6214;
-    public static int PORT2=6443;
-    public static int PORT3=6446;
-    public static int PORT4=6448;
+    public static int MPORT = 6212;
+    public static int OSPORT=6444;
+    public static int WEPORT=6445;
+    public static int UDPORT=6446;
 }
