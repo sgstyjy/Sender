@@ -15,78 +15,95 @@ import jxl.read.biff.BiffException;
 
 class SenderThread extends Thread 
 {
-	//client socket
-	private Socket socket;    
-	//client ID
-    int cid = Constant.CLIENT_ID++;
-	private DataOutputStream cout;
-	//private FileInputStream cin;
-	RandomAccessFile cin;
+	  String t_filein;
+	  int t_totalblock;
+	  int t_startblock;
+	  int t_endblock;
+	   DataOutputStream cout;
+	   RandomAccessFile cin;
+	   InetAddress ip;
 	
-	public SenderThread(InetAddress addr, int port) throws IOException, BiffException 
+	public SenderThread(Socket m_socket, Socket socket, String file_in, int total_block, int start_block, int end_block, int layer) throws IOException, BiffException 
 	{
-		//File IO
-		//File file_in = new File(Constant.FILE_IN);
-		//cin = new FileInputStream(file_in);    
-		cin = new RandomAccessFile(Constant.FILE_IN,"r");
-		long size = cin.length();
-		System.out.println("The length of original file is: "+ size);
-		
-		System.setProperty("java.net.preferIPv4Stack", "true");
-		socket = new Socket(addr, port);
-		socket.setSoTimeout(6000);
-		cout = new DataOutputStream(socket.getOutputStream());
-		
-		//start thread
-		start();
-		
+		t_filein=file_in;
+		t_totalblock=total_block;
+		t_startblock=start_block;
+		t_endblock=end_block;
+		ip = socket.getLocalAddress();
+		//send the layer information
+		 DataOutputStream  mout = new DataOutputStream(m_socket.getOutputStream());
+	     mout.writeInt(layer);
+	     mout.flush();
+	     //m_socket.close();
+	     System.out.println(" The output is from the layer: " + layer);
+	     
+	     cin = new RandomAccessFile(file_in, "r");
+		 cin.seek(t_startblock*Constant.TRANSFER_BUFFER);       //set the start read pointer
+		 cout = new DataOutputStream(socket.getOutputStream());
+		 start();
      }
   
 	//thread main method
 	public void run()
 	{
-		byte[] bb = new byte[Constant.TRANSFER_BUFFER];
-		int i =0;
-		int sendbytes =0;
-		int sendblocks = 0;
-		int send_length = 0;
+		 //calculate the parameters for transferring in 60KB
+		 int send_times = 0;
+		 long last_bytes = 0;
+		 int send_block = t_endblock - t_startblock;
+		 //if the part is the last part, specially tackle it, because the last block may be not a full block.
+		 if(t_endblock == t_totalblock)
+		 {
+			 long total_bytes = t_filein.length();
+			 send_times = send_block/15;
+			 last_bytes = (total_bytes - Constant.START_BLOCK*4096-send_times*61440);
+		 }
+		 else
+		 {
+			 send_times = send_block/15;
+			 last_bytes = (send_block%15)*4096;
+		 }
+		
+		 System.out.println("The start block number is:  " + t_startblock);
+		 System.out.println("The end block number is:  " + t_endblock);
+		 System.out.println("The send times are:  " + send_times);
+		 System.out.println("The last bytes are:  " + last_bytes);
+		 
 		try {
-				//read the similarity table
-				File file_in2 = new File(Constant.SIMILARTABLE);
-				//InputStream hashtable2 = new FileInputStream(file_in2);
-				Workbook book = Workbook.getWorkbook(file_in2);
-				Sheet sheet = book.getSheet(0);
-		       
-				//read the items in compare result table, get the block numbers, and send the data 
-	    		while(i<Constant.TOTALBLOCKS){
-	    			String tempstr = sheet.getCell(i/Constant.COLUMNS, i%Constant.COLUMNS).getContents();
-	    			if(!tempstr.equals("A") ){
-	    			    long templ = Long.parseLong(tempstr);
-	    			    cin.seek(templ*Constant.TRANSFER_BUFFER);
-	    			   send_length = cin.read(bb, 0, Constant.TRANSFER_BUFFER);
-		    			cout.write(bb, 0, send_length);
-		    			cout.flush();
-		    			sendbytes += send_length;
-		    			sendblocks++;
-		    			send_length=cin.read(bb, 0, Constant.TRANSFER_BUFFER);
-		    			i++;
-	    			}
-	    			else
-	    				i++;	
-			    }
-	    		socket.close();
-	    		cin.close();
-	    		cout.close();
-	    		//read the end time
-	     		Date date1 = new Date();
-	     		Constant.ENDTIME = date1.getTime();
-	     		Long duration = Constant.ENDTIME - Constant.STARTTIME;
-	     		System.out.println("The send time  is:"+duration);
-	     		
-	    		System.out.println("The total blocks are:"+i );
-				System.out.println("The send data blocks are:"+sendblocks);
-				System.out.println("The data amount of is [in bytes]:"+sendbytes);
-		} catch (IOException | BiffException e) {
+			cout.writeInt(Constant.START_BLOCK);
+			cout.writeInt(send_block);
+			cout.writeUTF(Constant.FILE_IN);
+			cout.flush();
+			System.out.println("Send the basic information end!");
+			
+			//send data blocks
+			int i = 0 ;
+			byte[] sb = new byte [15* Constant.TRANSFER_BUFFER];
+			  
+			int send_length = 0;
+		    send_length =  cin.read(sb);
+		    //System.out.println("The send length is :  " + send_length);
+			while (send_length!=-1 && i<send_times)
+			{
+			   	cout.write(sb, 0, send_length);
+			   	cout.flush();
+			   	i++;
+			   	send_length =  cin.read(sb);
+			}	
+			//write the last part of data in the buffer
+			cout.write(sb, 0, (int) last_bytes);
+			cout.flush();
+			System.out.println("The actual send times is: " + i);
+			//send end message
+			String end = "end";
+			sb=end.getBytes();
+			cout.write(sb, 0, sb.length);
+			cout.flush();
+			//calculate the send duration
+			Long endtime  = System.currentTimeMillis();
+			Long duration = endtime - Constant.START_TIME;
+			System.out.println("The send time of"+ ip+"  is :  " + duration);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}

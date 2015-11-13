@@ -11,136 +11,100 @@ import jxl.read.biff.BiffException;
 
 public class Sender {
 
-	public static void main(String[] args) throws BiffException, IOException {
-        //@para args[0]  the send image file name;
-		//@para args[1]  the layer number; 0 is the OS layer, 1 is the WE layer, 2 is the UD layer
-		//@para args[2]  the total blocks;
-		//@para args[3]  the start block number;
-		//@para args[4]  the end block number;
-		//@para args[5]  the destination IP address
-		 Constant.FILE_IN = args[0]; 
-		 int layer = Integer.parseInt(args[1]);
-		 int total_block = Integer.parseInt(args[2]);
-		 Constant.START_BLOCK=  Integer.parseInt(args[3]);
-		 Constant.END_BLOCK =  Integer.parseInt(args[4]);
-		 byte[] ip = getIpByte(args[5]);
+	public static void main(String[] args) throws BiffException, IOException, InterruptedException {
+        //@para args[0] the total layer number
+		//@para for each layer 
+		/*the parameters for each layer are same:
+		 * [1]  the file name;
+		 * [2]  the layer number; 0 is the OS layer, 1 is the WE layer, 2 is the UD layer
+		 * [3]  the total blocks;
+		 * [4]  the start block number;
+		 * [5]  the end block number;
+		*/
+		//@para args[last one]  the destination IP address
+		
+		//receive parameters from input
+		 int total_layer = Integer.parseInt(args[0]);
+		 String file0 = null, file1 = null, file2= null;
+		 int  layer0=0, layer1=0, layer2=0;
+		 int total_block0=0, total_block1=0, total_block2=0;
+		 int start_block0=0, start_block1=0, start_block2=0;
+		 int end_block0=0, end_block1=0, end_block2=0;
 		 
+		 //just send the WE and UD layers
+		 if(total_layer == 2)
+		 {
+			 file1 = args[1]; 
+			  layer1 = Integer.parseInt(args[2]);
+			  total_block1 = Integer.parseInt(args[3]);
+			 start_block1=  Integer.parseInt(args[4]);
+			  end_block1 =  Integer.parseInt(args[5]);
+			 
+			  file2 = args[6]; 
+			  layer2 = Integer.parseInt(args[7]);
+			  total_block2 = Integer.parseInt(args[8]);
+			 start_block2=  Integer.parseInt(args[9]);
+			  end_block2 =  Integer.parseInt(args[10]);
+			 
+			 Constant.IP = getIpByte(args[11]);
+		 }
+		 //send all three layers
+		 if(total_layer ==3)
+		 {
+			  file0 = args[1]; 
+			  layer0 = Integer.parseInt(args[2]);
+			  total_block0 = Integer.parseInt(args[3]);
+			 start_block0=  Integer.parseInt(args[4]);
+			  end_block0 =  Integer.parseInt(args[5]);
+			 
+			  file1 = args[6]; 
+			  layer1 = Integer.parseInt(args[7]);
+			  total_block1 = Integer.parseInt(args[8]);
+			 start_block1=  Integer.parseInt(args[9]);
+			  end_block1 =  Integer.parseInt(args[10]);
+			 
+			  file2 = args[11]; 
+			  layer2 = Integer.parseInt(args[12]);
+			  total_block2 = Integer.parseInt(args[13]);
+			 start_block2=  Integer.parseInt(args[14]);
+			  end_block2 =  Integer.parseInt(args[15]);
+			 
+			 Constant.IP = getIpByte(args[16]);
+		 }
+		 	 
 		 //read the start time
-	     Long starttime = System.currentTimeMillis();
+	     Constant.START_TIME = System.currentTimeMillis();
+	    
 	     
 		 //firstly construct socket to send the layer information
-	     InetAddress addr = InetAddress.getByAddress(ip);
+	     InetAddress addr = InetAddress.getByAddress(Constant.IP);
 	     Socket m_socket = new Socket(addr, Constant.MPORT);
-	     DataOutputStream  mout = new DataOutputStream(m_socket.getOutputStream());
-	     mout.writeInt(layer);
-	     mout.flush();
-	     m_socket.close();
-	     System.out.println("Send the layer information end!");
-	     
-	     //secondly construct socket to transfer data
-	     Socket socket = null;
-	     System.out.println("The layer is:"+layer);
-	     switch(layer)
+	     System.out.println("The outputs are from: " +m_socket.getLocalAddress());
+	     Socket os_socket = null, we_socket = null, ud_socket = null;
+	     Thread os_thread = null, we_thread = null, ud_thread = null;
+	     if(total_layer ==2)
 	     {
-	       case 0: 
-	    	   {
-	    		   socket = new Socket(addr, Constant.OSPORT);
-	    		   System.out.println("The case 0.");
-	    		   System.out.println("The client socket port is:"+socket.getPort());
-	    		   break;
-	    	   }
-	       case 1: 
-	    	   {
-	    		   socket = new Socket(addr, Constant.WEPORT);
-	    		   System.out.println("The case 1.");
-	    		   System.out.println("The client socket port is:"+socket.getPort());
-	    		   break;
-	    	   }
-	       case 2: 
-	    	   {
-	    		   socket = new Socket(addr, Constant.UDPORT);
-	    		   System.out.println("The case 2.");
-	    		   System.out.println("The client socket port is:"+socket.getPort());
-	    		   break;
-	    	   }
+	    	  we_socket = new Socket(addr, Constant.WEPORT);
+	    	  we_thread = new SenderThread(m_socket, we_socket,  file1,  total_block1,  start_block1,  end_block1,  layer1);
+		      ud_socket = new Socket(addr, Constant.UDPORT);
+		      ud_thread = new SenderThread(m_socket, ud_socket,  file2,  total_block2,  start_block2,  end_block2,  layer2);
 	     }
-	     if(socket==null)
+	     if (total_layer ==3)
 	     {
-	       System.out.println("The socket build failed!");
-	       return;
+	    	  os_socket = new Socket(addr, Constant.OSPORT);
+	    	  os_thread = new SenderThread(m_socket, os_socket,  file0,  total_block0,  start_block0,  end_block0,  layer0);
+	    	  we_socket = new Socket(addr, Constant.WEPORT);
+	    	  we_thread = new SenderThread(m_socket, we_socket,  file1,  total_block1,  start_block1,  end_block1,  layer1);
+		      ud_socket = new Socket(addr, Constant.UDPORT);
+		      ud_thread = new SenderThread(m_socket, ud_socket,  file2,  total_block2,  start_block2,  end_block2,  layer2);
 	     }
 	     
-	     //construct input/output stream
-	     File file_in = new File(Constant.FILE_IN);
-		 RandomAccessFile cin = new RandomAccessFile(Constant.FILE_IN,"r");
-		 cin.seek(Constant.START_BLOCK*Constant.TRANSFER_BUFFER);       //set the start read pointer
-		 DataOutputStream cout = new DataOutputStream(socket.getOutputStream());
-		   
-		 //calculate the parameters for transferring in 60KB
-		 int send_times = 0;
-		 long last_bytes = 0;
-		 int send_block = Constant.END_BLOCK - Constant.START_BLOCK;
-		 //if the part is the last part, specially tackle it, because the last block may be not a full block.
-		 if(Constant.END_BLOCK == total_block)
-		 {
-			 long total_bytes = file_in.length();
-			 send_times = send_block/15;
-			 last_bytes = (total_bytes - Constant.START_BLOCK*4096-send_times*61440);
-		 }
-		 else
-		 {
-			 send_times = send_block/15;
-			 last_bytes = (send_block%15)*4096;
-		 }
-		 System.out.println("The outputs are from the Client: ");
-		 System.out.println("The send image file is:  " + Constant.FILE_IN);
-		 System.out.println("The start block number is:  " + Constant.START_BLOCK);
-		 System.out.println("The end block number is:  " + Constant.END_BLOCK);
-		 System.out.println("The send times are:  " + send_times);
-		 System.out.println("The last bytes are:  " + last_bytes);
-		  
-		//send basic information about this transfer: start block, total send block, and file name
-		//cout.writeInt(send_times);
-		//cout.writeLong(last_bytes);
-		 System.out.println("The client socket port is:"+socket.getPort());
-		cout.writeInt(Constant.START_BLOCK);
-		cout.writeInt(send_block);
-		cout.writeUTF(Constant.FILE_IN);
-		cout.flush();
-		System.out.println("The client socket port is:"+socket.getLocalPort());
-		System.out.println("Send the basic information end!");
-		
-		//send data blocks
-		int i = 0 ;
-		byte[] sb = new byte [15* Constant.TRANSFER_BUFFER];
-		  
-		int send_length = 0;
-	    send_length =  cin.read(sb);
-	    //System.out.println("The send length is :  " + send_length);
-		while (send_length!=-1 && i<send_times)
-		{
-		   	cout.write(sb, 0, send_length);
-		   	cout.flush();
-		   	i++;
-		   	send_length =  cin.read(sb);
-		}	
-		//write the last part of data in the buffer
-		cout.write(sb, 0, (int) last_bytes);
-		cout.flush();
-		System.out.println("The actual send times is: " + i);
-		//send end message
-		String end = "end";
-		sb=end.getBytes();
-		cout.write(sb, 0, sb.length);
-		cout.flush();
-		//calculate the send duration
-		Long endtime  = System.currentTimeMillis();
-		Long duration = endtime - starttime;
-		System.out.println("The send time is :  " + duration);
-
-		socket.close();
-		cin.close();
-		cout.close();
+	     os_thread.join();
+	     os_socket.close();
+	     we_thread.join();
+		we_socket.close();
+		ud_thread.join();
+		ud_socket.close();
 		return;
 	}
 	
