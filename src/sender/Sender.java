@@ -31,13 +31,18 @@ public class Sender {
 		 int start_block0=0, start_block1=0, start_block2=0;
 		 int end_block0=0, end_block1=0, end_block2=0;
 		 
+		 //read the start time
+	     Constant.START_TIME = System.currentTimeMillis();
+	    
+		 //firstly construct socket to send the layer information
+	     
 		 //just send the WE and UD layers
 		 if(total_layer == 2)
 		 {
-			 file1 = args[1]; 
+			  file1 = args[1]; 
 			  layer1 = Integer.parseInt(args[2]);
 			  total_block1 = Integer.parseInt(args[3]);
-			 start_block1=  Integer.parseInt(args[4]);
+			  start_block1=  Integer.parseInt(args[4]);
 			  end_block1 =  Integer.parseInt(args[5]);
 			 
 			  file2 = args[6]; 
@@ -47,6 +52,30 @@ public class Sender {
 			  end_block2 =  Integer.parseInt(args[10]);
 			 
 			 Constant.IP = getIpByte(args[11]);
+			 
+			 Constant.ADDRESS = InetAddress.getByAddress(Constant.IP);
+			 
+			//send the total layer information
+			 Socket m_socket = new Socket(Constant.ADDRESS, Constant.MPORT);
+			 DataOutputStream  mout = new DataOutputStream(m_socket.getOutputStream());
+		     mout.writeInt(total_layer);
+		     mout.flush();
+		     m_socket.close();
+		     System.out.println(" The output is from the layer: " + m_socket.getLocalAddress());
+		     
+		     //create thread to send data blocks
+		     Socket  we_socket = null, ud_socket = null;
+		     Thread  we_thread = null, ud_thread = null;
+		     
+		     we_socket = new Socket(Constant.ADDRESS, Constant.WEPORT);
+	    	 we_thread = new SenderThread(we_socket,  file1,  total_block1,  start_block1,  end_block1,  layer1);
+		     ud_socket = new Socket(Constant.ADDRESS, Constant.UDPORT);
+		     ud_thread = new SenderThread(ud_socket,  file2,  total_block2,  start_block2,  end_block2,  layer2);
+		     
+		     we_thread.join();
+			 we_socket.close();
+			 ud_thread.join();
+			 ud_socket.close();
 		 }
 		 //send all three layers
 		 if(total_layer ==3)
@@ -54,58 +83,42 @@ public class Sender {
 			  file0 = args[1]; 
 			  layer0 = Integer.parseInt(args[2]);
 			  total_block0 = Integer.parseInt(args[3]);
-			 start_block0=  Integer.parseInt(args[4]);
+			  start_block0=  Integer.parseInt(args[4]);
 			  end_block0 =  Integer.parseInt(args[5]);
 			 
 			  file1 = args[6]; 
 			  layer1 = Integer.parseInt(args[7]);
 			  total_block1 = Integer.parseInt(args[8]);
-			 start_block1=  Integer.parseInt(args[9]);
+			  start_block1=  Integer.parseInt(args[9]);
 			  end_block1 =  Integer.parseInt(args[10]);
 			 
 			  file2 = args[11]; 
 			  layer2 = Integer.parseInt(args[12]);
 			  total_block2 = Integer.parseInt(args[13]);
-			 start_block2=  Integer.parseInt(args[14]);
+			  start_block2=  Integer.parseInt(args[14]);
 			  end_block2 =  Integer.parseInt(args[15]);
 			 
 			 Constant.IP = getIpByte(args[16]);
+			 
+			 Constant.ADDRESS = InetAddress.getByAddress(Constant.IP);
+		     Socket os_socket = null, we_socket = null, ud_socket = null;
+		     Thread os_thread = null, we_thread = null, ud_thread = null;
+		     
+		     os_socket = new Socket(Constant.ADDRESS, Constant.OSPORT);
+	    	 os_thread = new SenderThread(os_socket,  file0,  total_block0,  start_block0,  end_block0,  layer0);
+	    	 we_socket = new Socket(Constant.ADDRESS, Constant.WEPORT);
+	    	 we_thread = new SenderThread(we_socket,  file1,  total_block1,  start_block1,  end_block1,  layer1);
+		     ud_socket = new Socket(Constant.ADDRESS, Constant.UDPORT);
+		     ud_thread = new SenderThread(ud_socket,  file2,  total_block2,  start_block2,  end_block2,  layer2);
+		     
+		     os_thread.join();
+			 os_socket.close();
+			 we_thread.join();
+			 we_socket.close();
+			 ud_thread.join();
+			 ud_socket.close();
 		 }
-		 	 
-		 //read the start time
-	     Constant.START_TIME = System.currentTimeMillis();
-	    
-	     
-		 //firstly construct socket to send the layer information
-	     InetAddress addr = InetAddress.getByAddress(Constant.IP);
-	     Socket m_socket = new Socket(addr, Constant.MPORT);
-	     System.out.println("The outputs are from: " +m_socket.getLocalAddress());
-	     Socket os_socket = null, we_socket = null, ud_socket = null;
-	     Thread os_thread = null, we_thread = null, ud_thread = null;
-	     if(total_layer ==2)
-	     {
-	    	  we_socket = new Socket(addr, Constant.WEPORT);
-	    	  we_thread = new SenderThread(m_socket, we_socket,  file1,  total_block1,  start_block1,  end_block1,  layer1);
-		      ud_socket = new Socket(addr, Constant.UDPORT);
-		      ud_thread = new SenderThread(m_socket, ud_socket,  file2,  total_block2,  start_block2,  end_block2,  layer2);
-	     }
-	     if (total_layer ==3)
-	     {
-	    	  os_socket = new Socket(addr, Constant.OSPORT);
-	    	  os_thread = new SenderThread(m_socket, os_socket,  file0,  total_block0,  start_block0,  end_block0,  layer0);
-	    	  we_socket = new Socket(addr, Constant.WEPORT);
-	    	  we_thread = new SenderThread(m_socket, we_socket,  file1,  total_block1,  start_block1,  end_block1,  layer1);
-		      ud_socket = new Socket(addr, Constant.UDPORT);
-		      ud_thread = new SenderThread(m_socket, ud_socket,  file2,  total_block2,  start_block2,  end_block2,  layer2);
-	     }
-	     
-	     os_thread.join();
-	     os_socket.close();
-	     we_thread.join();
-		we_socket.close();
-		ud_thread.join();
-		ud_socket.close();
-		return;
+		 return;
 	}
 	
 	//translate the String IP to byte[] IP

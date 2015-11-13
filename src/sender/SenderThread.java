@@ -1,16 +1,11 @@
 package sender;
 
 import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.net.InetAddress;
 import java.net.Socket;
-import java.util.Date;
 
-import jxl.Sheet;
-import jxl.Workbook;
 import jxl.read.biff.BiffException;
 
 class SenderThread extends Thread 
@@ -23,27 +18,20 @@ class SenderThread extends Thread
 	   RandomAccessFile cin;
 	   InetAddress ip;
 	
-	public SenderThread(Socket m_socket, Socket socket, String file_in, int total_block, int start_block, int end_block, int layer) throws IOException, BiffException 
+	public SenderThread(Socket socket, String file_in, int total_block, int start_block, int end_block, int layer) throws IOException, BiffException 
 	{
 		t_filein=file_in;
 		t_totalblock=total_block;
 		t_startblock=start_block;
 		t_endblock=end_block;
 		ip = socket.getLocalAddress();
-		//send the layer information
-		 DataOutputStream  mout = new DataOutputStream(m_socket.getOutputStream());
-	     mout.writeInt(layer);
-	     mout.flush();
-	     //m_socket.close();
-	     System.out.println(" The output is from the layer: " + layer);
-	     
-	     cin = new RandomAccessFile(file_in, "r");
-		 cin.seek(t_startblock*Constant.TRANSFER_BUFFER);       //set the start read pointer
-		 cout = new DataOutputStream(socket.getOutputStream());
-		 start();
-     }
+		
+	    cin = new RandomAccessFile(file_in, "r");
+		cin.seek(t_startblock*Constant.TRANSFER_BUFFER);       //set the start read pointer
+		cout = new DataOutputStream(socket.getOutputStream());
+		start();
+    }
   
-	//thread main method
 	public void run()
 	{
 		 //calculate the parameters for transferring in 60KB
@@ -53,16 +41,23 @@ class SenderThread extends Thread
 		 //if the part is the last part, specially tackle it, because the last block may be not a full block.
 		 if(t_endblock == t_totalblock)
 		 {
-			 long total_bytes = t_filein.length();
+			 long total_bytes = 0;
+			try {
+				total_bytes = cin.length();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			 System.out.println("The total bytes are:  " + total_bytes);
 			 send_times = send_block/15;
-			 last_bytes = (total_bytes - Constant.START_BLOCK*4096-send_times*61440);
+			 last_bytes = (total_bytes - t_startblock*4096-send_times*61440);
 		 }
 		 else
 		 {
 			 send_times = send_block/15;
 			 last_bytes = (send_block%15)*4096;
 		 }
-		
+		 
 		 System.out.println("The start block number is:  " + t_startblock);
 		 System.out.println("The end block number is:  " + t_endblock);
 		 System.out.println("The send times are:  " + send_times);
@@ -71,7 +66,7 @@ class SenderThread extends Thread
 		try {
 			cout.writeInt(Constant.START_BLOCK);
 			cout.writeInt(send_block);
-			cout.writeUTF(Constant.FILE_IN);
+			cout.writeUTF(t_filein);
 			cout.flush();
 			System.out.println("Send the basic information end!");
 			
