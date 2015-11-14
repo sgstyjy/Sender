@@ -14,6 +14,7 @@ class SenderThread extends Thread
 	  int t_totalblock;
 	  int t_startblock;
 	  int t_endblock;
+	  int t_layer;
 	   DataOutputStream cout;
 	   RandomAccessFile cin;
 	   InetAddress ip;
@@ -24,6 +25,7 @@ class SenderThread extends Thread
 		t_totalblock=total_block;
 		t_startblock=start_block;
 		t_endblock=end_block;
+		t_layer = layer;
 		ip = socket.getLocalAddress();
 		
 	    cin = new RandomAccessFile(file_in, "r");
@@ -64,7 +66,7 @@ class SenderThread extends Thread
 		 System.out.println("The last bytes are:  " + last_bytes);
 		 
 		try {
-			cout.writeInt(Constant.START_BLOCK);
+			cout.writeInt(t_startblock);
 			cout.writeInt(send_block);
 			cout.writeUTF(t_filein);
 			cout.flush();
@@ -96,7 +98,7 @@ class SenderThread extends Thread
 			//calculate the send duration
 			Long endtime  = System.currentTimeMillis();
 			Long duration = endtime - Constant.START_TIME;
-			System.out.println("The send time of"+ ip+"  is :  " + duration);
+			System.out.println("The send time of"+ ip+ " of layer " + t_layer + " is: " + duration);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
