@@ -24,6 +24,7 @@ public class Sender {
 		
 		//receive parameters from input
 		 int total_layer = Integer.parseInt(args[0]);
+		 Constant.ADDRESS = InetAddress.getByAddress(getIpByte("127.0.0.1"));
 		 String file0 = null, file1 = null, file2= null;
 		 int total_block0=0, total_block1=0, total_block2=0;
 		 int start_block0=0, start_block1=0, start_block2=0;
@@ -37,6 +38,17 @@ public class Sender {
 	     //the total layer is 2, send the WE and UD layers's data
 	     //the total layer is 3, send the three layers's data
 	     
+	     //stop condition
+	     if(total_layer==0)
+	     {
+	    	//send the stop signal
+			 Socket m_socket = new Socket(Constant.ADDRESS, Constant.MPORT);
+			 DataOutputStream  mout = new DataOutputStream(m_socket.getOutputStream());
+		     mout.writeInt(total_layer);
+		     mout.flush();
+		     m_socket.close();
+		     System.out.println(" Stopped the server socket!");
+	     }
 	     //just send the OS layer, this is for testing the transfer speed
 	     if(total_layer == 1)
 		 {
